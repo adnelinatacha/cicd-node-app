@@ -1,4 +1,3 @@
-cat > ~/cicd-node-app/Jenkinsfile << 'EOF'
 pipeline {
     agent any
     options { timeout(time: 20, unit: 'MINUTES') }
@@ -49,5 +48,3 @@ pipeline {
         }
     }
 }
-EOF
-cat ~/cicd-node-app/Jenkinsfile
