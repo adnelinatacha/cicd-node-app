@@ -1,27 +1,18 @@
 pipeline {
     agent any
-    environment {
-        DOCKER_IMAGE = "adtelnatacha01devops/test-node:latest"
-    }
     stages {
         stage('Checkout') { steps { checkout scm } }
-        stage('Build Docker Image') {
-            steps {
-                sh 'DOCKER_BUILDKIT=0 docker build -t $DOCKER_IMAGE .'
-            }
-        }
-        stage('Transfert image vers Ansible') {
+        stage('Build et Deploy sur le vieux host') {
             steps {
                 sh '''
-                  docker save $DOCKER_IMAGE -o /tmp/test-node.tar
-                  scp -o StrictHostKeyChecking=no /tmp/test-node.tar ansible@10.40.202.32:/tmp/test-node.tar
-                  ssh -o StrictHostKeyChecking=no ansible@10.40.202.32 "docker load -i /tmp/test-node.tar"
+                ssh -o StrictHostKeyChecking=no ansible@10.40.202.32 "
+                  cd /home/ansible/cicd-node-app &&
+                  git pull &&
+                  docker rm -f test-node-app || true &&
+                  docker build -t test-node:latest . &&
+                  docker run -d --name test-node-app -p 3000:3000 test-node:latest
+                "
                 '''
-            }
-        }
-        stage('Deploiement avec Ansible') {
-            steps {
-                sh 'ssh -o StrictHostKeyChecking=no ansible@10.40.202.32 "cd /home/ansible/cicd-node-app && git pull && ansible-playbook deploy.yml --extra-vars \\"docker_image=$DOCKER_IMAGE\\""'
             }
         }
     }
