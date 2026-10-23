@@ -1,22 +1,11 @@
 ---
-- name: Deploy Node App
+- name: Déployer une application Node
   hosts: localhost
-  become: yes
+  connection: local
+  gather_facts: false
   tasks:
-    - name: Pull docker image
-      community.docker.docker_image:
-        name: "{{ docker_image }}"
-        source: pull
-    - name: Stop old container
-      community.docker.docker_container:
-        name: cicd-node-app
-        state: absent
-      ignore_errors: yes
-    - name: Run new container
-      community.docker.docker_container:
-        name: cicd-node-app
-        image: "{{ docker_image }}"
-        state: started
-        ports:
-          - "3000:3000"
-        restart_policy: always
+    - name: Stop ancien conteneur
+      shell: docker rm -f test-node-app || true
+
+    - name: Lancer nouveau conteneur
+      shell: docker run -d --name test-node-app -p 3000:3000 {{ docker_image }}
