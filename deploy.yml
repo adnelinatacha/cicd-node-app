@@ -8,4 +8,4 @@
       shell: docker rm -f test-node-app || true
 
     - name: Lancer nouveau conteneur
-      shell: docker run -d --security-opt apparmor=unconfined --security-opt seccomp=unconfined --name test-node-app -p 3000:3000 {{ docker_image }}
+      shell: docker run -d --sysctl net.ipv4.ip_unprivileged_port_start=0 --security-opt apparmor=unconfined --name test-node-app -p 3000:3000 {{ docker_image }}
