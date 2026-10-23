@@ -1,5 +1,7 @@
-FROM alpine:3.10
+FROM node:10-buster-slim
 WORKDIR /app
+COPY package*.json ./
+RUN npm install --only=production
 COPY . .
 EXPOSE 3000
-CMD sh -c "apk add --no-cache nodejs npm && npm install --no-audit --no-fund && npm start"
+CMD ["npm", "start"]

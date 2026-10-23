@@ -9,9 +9,9 @@ pipeline {
                   git pull origin main
                   docker rm -f test-node-app || true
                   docker build -t test-node:latest .
-                  docker run -d --privileged --security-opt apparmor=unconfined --security-opt seccomp=unconfined --name test-node-app -p 3000:3000 test-node:latest
-                  sleep 6
-                  docker ps | grep test-node
+                  docker run -d --privileged --security-opt apparmor=unconfined --name test-node-app -p 3000:3000 test-node:latest
+                  sleep 5
+                  docker ps
                   docker logs test-node-app --tail 30
                 "
                 '''
