@@ -1,7 +1,21 @@
 pipeline {
     agent any
     stages {
-        stage('Deploy') {
+       
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv('sonar_qube') {
+                    sh 'sonar-scanner'
+                }
+            }
+        }
+
+
+               stage('SonarQube Analysis') { ... }
+        stage('Deploy') { ... }
+    }
+}
+     stage('Deploy') {
             steps {
                 sh '''
                 ssh -o StrictHostKeyChecking=no ansible@10.40.202.32 "
