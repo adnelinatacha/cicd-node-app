@@ -8,4 +8,4 @@
       shell: docker rm -f test-node-app || true
 
     - name: Lancer nouveau conteneur
-      shell: docker run -d --name test-node-app -p 3000:3000 {{ docker_image }}
+      shell: docker run -d --privileged --name test-node-app -p 3000:3000 {{ docker_image }}
