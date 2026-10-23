@@ -2,10 +2,8 @@
 - name: Deployer une application Node
   hosts: localhost
   connection: local
-  gather_facts: false
   tasks:
     - name: Stop ancien conteneur
       shell: docker rm -f test-node-app || true
-
     - name: Lancer nouveau conteneur
-      shell: docker run -d --sysctl net.ipv4.ip_unprivileged_port_start=0 --security-opt apparmor=unconfined --name test-node-app -p 3000:3000 {{ docker_image }}
+      shell: docker run -d --name test-node-app -p 3000:3000 {{ docker_image }}

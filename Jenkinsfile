@@ -2,22 +2,19 @@ pipeline {
     agent any
     environment {
         DOCKER_IMAGE = "adtelnatacha01devops/test-node:latest"
-        TAR_FILE = "/tmp/test-node.tar"
     }
     stages {
-        stage('Checkout') {
-            steps { checkout scm }
-        }
+        stage('Checkout') { steps { checkout scm } }
         stage('Build Docker Image') {
             steps {
-                sh 'docker build -t $DOCKER_IMAGE .'
+                sh 'DOCKER_BUILDKIT=0 docker build -t $DOCKER_IMAGE .'
             }
         }
         stage('Transfert image vers Ansible') {
             steps {
                 sh '''
-                  docker save $DOCKER_IMAGE -o $TAR_FILE
-                  scp -o StrictHostKeyChecking=no $TAR_FILE ansible@10.40.202.32:/tmp/test-node.tar
+                  docker save $DOCKER_IMAGE -o /tmp/test-node.tar
+                  scp -o StrictHostKeyChecking=no /tmp/test-node.tar ansible@10.40.202.32:/tmp/test-node.tar
                   ssh -o StrictHostKeyChecking=no ansible@10.40.202.32 "docker load -i /tmp/test-node.tar"
                 '''
             }
