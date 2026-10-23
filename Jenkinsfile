@@ -1,48 +1,44 @@
 pipeline {
     agent any
-    options { timeout(time: 20, unit: 'MINUTES') }
+
     environment {
-        DOCKER_IMAGE_NAME = "adtelnatacha01devops/test-node"
-        ANSIBLE_SERVER = "ansible@10.40.202.32"
-        DOCKERHUB_CREDENTIALS = 'dockerhub-creds'
-        IMAGE_TAG = "latest"
+        DOCKER_IMAGE = "adtelnatacha01devops/test-node:latest"
     }
+
     stages {
-        stage('Clone Repository') {
+        stage('Checkout') {
             steps {
-                git url: 'https://github.com/adnelinatacha/cicd-node-app.git', branch: 'main'
+                checkout scm
             }
         }
-        stage('Install Dependencies') {
-            steps {
-                sh 'npm install --no-audit || echo "npm skip"'
-            }
-        }
+
         stage('Build Docker Image') {
             steps {
-                sh 'docker build -t ${DOCKER_IMAGE_NAME}:${IMAGE_TAG} .'
-            }
-        }
-        stage('Push to Docker Hub') {
-            steps {
                 script {
-                    try {
-                        withCredentials([usernamePassword(credentialsId: "${DOCKERHUB_CREDENTIALS}", usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                            sh '''
-                              echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
-                              timeout 180 docker push ${DOCKER_IMAGE_NAME}:${IMAGE_TAG} || echo "Push timeout but continue"
-                            '''
-                        }
-                    } catch(e) { echo "Push failed, continue" }
+                    sh 'docker build -t $DOCKER_IMAGE .'
                 }
             }
         }
-        stage('Deploy with Ansible') {
+
+        stage('Push Docker Image') {
             steps {
                 script {
-                    try {
-                        sh 'ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 ${ANSIBLE_SERVER} "cd /home/ansible/cicd-node-app && ansible-playbook deploy.yml --extra-vars \\"docker_image=${DOCKER_IMAGE_NAME}:${IMAGE_TAG}\\"" || echo "Deploy skip"'
-                    } catch(e) { echo "Deploy skipped" }
+                    withCredentials([usernamePassword(credentialsId: 'docker-hub', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                        sh '''
+                            echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
+                            docker push $DOCKER_IMAGE || echo "Délai d'attente dépassé, mais continuer"
+                        '''
+                    }
+                }
+            }
+        }
+
+        stage('Déploiement avec Ansible') {
+            steps {
+                script {
+                    sh '''
+                        ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 ansible@10.40.202.32 "cd /home/ansible/cicd-node-app && git pull && ls -l && ansible-playbook deploy.yml --extra-vars \\"docker_image=adtelnatacha01devops/test-node:latest\\" " || echo "Déploiement ignoré"
+                    '''
                 }
             }
         }
