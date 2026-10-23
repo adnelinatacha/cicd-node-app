@@ -5,14 +5,15 @@ pipeline {
             steps {
                 sh '''
                 ssh -o StrictHostKeyChecking=no ansible@10.40.202.32 "
-                  cd /home/ansible/cicd-node-app
-                  git pull origin main
-                  docker rm -f test-node-app || true
-                  docker build -t test-node:latest .
-                  docker run -d --name test-node-app -p 3000:3000 --security-opt apparmor=unconfined test-node:latest
-                  sleep 5
-                  docker logs test-node-app
-                  docker ps | grep test-node
+                  cd /home/ansible/cicd-node-app &&
+                  git pull origin main &&
+                  docker rm -f test-node-app || true &&
+                  npm install &&
+                  pm2 delete test-node-app || true &&
+                  pm2 start npm --name test-node-app -- start &&
+                  sleep 2 &&
+                  pm2 list &&
+                  curl -s http://localhost:3000 | head -20
                 "
                 '''
             }
