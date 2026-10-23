@@ -4,6 +4,9 @@
   connection: local
   gather_facts: false
   tasks:
+    - name: Build image Docker localement
+      shell: cd /home/ansible/cicd-node-app && docker build -t {{ docker_image }} .
+
     - name: Stop ancien conteneur
       shell: docker rm -f test-node-app || true
 
